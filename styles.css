@@ -1,5 +1,12 @@
 /* your beautiful css styling goes here! */
+.asteroid {
+  /*background: url:'./asteroid.png';*/
+  background: red;
+}
 
+.gameBoard {
+  background: blue;
+}
 /* Note: an asteroid image is included in this repo.
 Feel free to use it if you like. */
 
