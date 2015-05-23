@@ -2,10 +2,15 @@
 
 var boardWidth = 500;
 var boardHeight = 500;
-var nEnemies = 1;
+var nEnemies = 15;
 var enemyData = [];
 var playerRadius = 20;
+var collided = false;
 var collisionCount = 0;
+
+//scores
+var highScore = 0;
+var currentScore = 0;
 
 var gameBoard = d3.select('body').append('svg:svg')
   .attr('class', 'gameBoard')
@@ -30,6 +35,17 @@ var enemies = gameBoard.selectAll('circle.enemy')
   .data(enemyData);
 
 enemies.enter().append('svg:circle')
+  .transition().tween('firstTransition', function() {
+    d3.select('.high').selectAll('span')
+      .data([highScore])
+      .text(function(d) {return d;});
+    d3.select('.current').selectAll('span')
+      .data([currentScore])
+      .text(function(d) {return d;});
+    d3.select('.collisions').selectAll('span')
+      .data([collisionCount])
+      .text(function(d) {return d;});
+  })
   .attr('class','enemy')
   .attr('cx', function(d) { return d.x; })
   .attr('cy', function(d) { return d.y; })
@@ -51,8 +67,7 @@ var drag = d3.behavior.drag()
   .on('drag', dragmove);
 
 var player = gameBoard.selectAll('circle.player')
-  .data([onlyPlayer])
-  .call(drag);
+  .data([onlyPlayer]);
 
 player.enter().append('svg:circle')
   .attr('class','player')
@@ -101,44 +116,54 @@ d3.timer(moving(), 1000);
 /* collision detection */
 /*------------------------------------------------*/
 var onCollision = function() {
-  console.log("collided!");
-  collisionCount++;
-  // updateBestScore();
-  // updateScore();
-  // set current score to zero
+  collided = true;
 };
 
-var checkCollision = function(enemy, collidedCallback, already){
+var checkCollision = function(enemy, collidedCallback){
+  currentScore++;
   var radiusSum = parseFloat(enemy.attr('r')) + parseFloat(player.attr('r'));
   var xDiff = parseFloat(enemy.attr('cx')) - parseFloat(player.attr('cx'));
   var yDiff = parseFloat(enemy.attr('cy')) - parseFloat(player.attr('cy'));
 
   //pythag therom to check the distance between the centers of two circles
   var separation = Math.sqrt(Math.pow(xDiff,2) + Math.pow(yDiff, 2));
-  console.log(separation);
-  if (separation < radiusSum && !already) {
-    already = true;
-    console.log('collisions: ', collisionCount);
-    collidedCallback(player, enemy);
+
+  if (separation < radiusSum) {
+    collidedCallback();
+  } else {
+    actuallyCount();
   }
 }
 
 var tweenWithCollisionDetection = function(){
   var enemy = d3.select(this);
-
   // creates another function to preserve access to enemy's this binding by closure
   //  to ensure you are checking the right enemy
-  return function(){
-    var already = false;
-    checkCollision(enemy, onCollision, already);
+
+  return function() {
+    d3.select('.high').selectAll('span')
+      .data([highScore])
+      .text(function(d) {return d;});
+    d3.select('.current').selectAll('span')
+      .data([currentScore])
+      .text(function(d) {return d;});
+    d3.select('.collisions').selectAll('span')
+      .data([collisionCount])
+      .text(function(d) {return d;});
+    checkCollision(enemy, onCollision);
   }
+
 }
 
-gameBoard.selectAll('circle.enemy')
-  .data(enemyData).transition().duration(1000) //binding selected DOM nodes with updated version of data
-  .attr('cx', function(d) { return d.x; })
-  .attr('cy', function(d) { return d.y; })
-  .tween('custom', tweenWithCollisionDetection);
-
+var actuallyCount = function(){
+  if (collided) {
+    if (currentScore > highScore){
+      highScore = currentScore;
+      currentScore = 0;
+    }
+    collisionCount++;
+  }
+  collided = false;
+}
 
 
