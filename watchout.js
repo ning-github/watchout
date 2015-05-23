@@ -98,24 +98,39 @@ d3.timer(moving(), 1000);
 
 /* collision detection */
 /*------------------------------------------------*/
-
 var onCollision = function() {
+  console.log("collided!");
   // updateBestScore();
   // updateScore();
   // set current score to zero
 };
 
+var checkCollision = function(enemy, collidedCallback){
+  var radiusSum = enemy.attr('r') + player.attr('r');
+  var xDiff = enemy.attr('cx') + player.attr('cx');
+  var yDiff = enemy.attr('cy') + player.attr('cy');
+
+  //pythag therom to check the distance between the centers of two circles
+  var separation = Math.sqrt(Math.pow(xDiff,2) + Math.pow(yDiff, 2));
+  if (separation < radiusSum){
+    collidedCallback(player, enemy);
+  }
+}
+
+var tweenWithCollisionDetection = function(endData){
+  var enemy = d3.select(this);
+  // var startPos = {
+  //   x: enemy.attr('cx');
+  //   y: enemy.attr('cy');
+  // };
+  return function(t){
+    checkCollision(enemy, onCollision);
+  }
+}
+
 gameBoard.selectAll('circle.enemy')
   .data(enemyData).transition().duration(1000)
   .attr('cx', function(d) { return d.x; })
   .attr('cy', function(d) { return d.y; })
-  .tween('custom',function(eachEnemy){
-    //check if that enemy collided
-    var radiusSum = parseFloat(eachEnemy.attr('r')) + player.attr('r');
-    var xDelta = parseFloat(eachEnemy.attri('cx')) + player.attr('cx');
-    var yDelta = parseFloat(eachEnemy.attri('cy')) + player.attr('cy');
-
-    var distanceDelta = Math.sqrt( Math.pow(xDelta, 2) + Math.pow(yDelta, 2));
-    if (distanceDelta < radiusSum) null;// write some callback here
-  });
+  .tween('custom', tweenWithCollisionDetection);
 
