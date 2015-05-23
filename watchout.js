@@ -2,10 +2,10 @@
 
 var boardWidth = 500;
 var boardHeight = 500;
-var nEnemies = 15;
+var nEnemies = 3;
 var enemyData = [];
 var playerRadius = 20;
-var collided = false;
+
 var collisionCount = 0;
 
 //scores
@@ -50,7 +50,8 @@ enemies.enter().append('svg:circle')
   .attr('cx', function(d) { return d.x; })
   .attr('cy', function(d) { return d.y; })
   .attr('r', 6)
-  .attr('fill', 'red');
+  .attr('fill', 'red')
+  .attr('collided', false);
 
 
 /* player's dot */
@@ -115,9 +116,6 @@ d3.timer(moving(), 1000);
 
 /* collision detection */
 /*------------------------------------------------*/
-var onCollision = function() {
-  collided = true;
-};
 
 var checkCollision = function(enemy, collidedCallback){
   currentScore++;
@@ -125,13 +123,21 @@ var checkCollision = function(enemy, collidedCallback){
   var xDiff = parseFloat(enemy.attr('cx')) - parseFloat(player.attr('cx'));
   var yDiff = parseFloat(enemy.attr('cy')) - parseFloat(player.attr('cy'));
 
+  var col = enemy.attr('collided') === 'false' ? false : true; //parse bool
   //pythag therom to check the distance between the centers of two circles
   var separation = Math.sqrt(Math.pow(xDiff,2) + Math.pow(yDiff, 2));
 
   if (separation < radiusSum) {
-    collidedCallback();
+    enemy.attr('collided', true);
   } else {
-    actuallyCount();
+    if (enemy.attr('collided') === 'true') {
+      if (currentScore > highScore){
+        highScore = currentScore;
+        currentScore = 0;
+      }
+      collisionCount++;
+    }
+    enemy.attr('collided', false);
   }
 }
 
@@ -150,20 +156,8 @@ var tweenWithCollisionDetection = function(){
     d3.select('.collisions').selectAll('span')
       .data([collisionCount])
       .text(function(d) {return d;});
-    checkCollision(enemy, onCollision);
+    checkCollision(enemy);
   }
 
 }
-
-var actuallyCount = function(){
-  if (collided) {
-    if (currentScore > highScore){
-      highScore = currentScore;
-      currentScore = 0;
-    }
-    collisionCount++;
-  }
-  collided = false;
-}
-
 
