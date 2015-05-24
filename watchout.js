@@ -2,7 +2,7 @@
 
 var boardWidth = 500;
 var boardHeight = 500;
-var nEnemies = 3;
+var nEnemies = 15;
 var enemyData = [];
 var playerRadius = 20;
 
@@ -135,7 +135,10 @@ var checkCollision = function(enemy, collidedCallback){
         highScore = currentScore;
         currentScore = 0;
       }
+      currentScore = 0;
       collisionCount++;
+      //change background color randomly upon collision
+      gameBoard.data(["#"+((1<<24)*Math.random()|0).toString(16)]).style('background', function(d){return d;});
     }
     enemy.attr('collided', false);
   }
