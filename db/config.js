@@ -1,3 +1,3 @@
 // define database to store scores
 
-still need to a package.json
+still need a package.json
